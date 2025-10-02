@@ -1,95 +1,56 @@
-import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route, NavLink } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import SearchBar from "./Components/Searchbar";
+import axios from "axios";
+import WeatherCard from "./Components/Weathercard";
 
-import Header from "./components/Header";
-import AboutPage from "./pages/Aboutpage";
-import ForecastPage from "./pages/Forecastpage";
-import HomePage from "./pages/Homepage";
-import Footer from "./components/Footer";
-import "./index.css";
-
-const App = () => {
-  const [isMetric, setIsMetric] = useState(true);
+function App() {
   const [weather, setWeather] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (!searchTerm) return;
-    setIsLoading(true);
+  const API_KEY = import.meta.env.VITE_API_KEY;
+  const API_URL = "https://api.openweathermap.org/data/2.5/weather";
 
-    setTimeout(() => {
-      setWeather({
-        city: "Nairobi",
-        country: "Kenya",
-        date: new Date().toDateString(),
-        currentTempC: 28,
-        feelsLikeC: 30,
-        humidity: 60,
-        wind: 12,
-        precipitation: 2,
-        hourly: [
-          { time: "10 AM", tempC: 26, icon: "/icons/sunny.png" },
-          { time: "12 PM", tempC: 28, icon: "/icons/sunny.png" },
-          { time: "2 PM", tempC: 29, icon: "/icons/sunny.png" },
-        ],
-        daily: [
-          { day: "Mon", maxC: 29, minC: 19, icon: "/icons/sunny.png" },
-          { day: "Tue", maxC: 27, minC: 18, icon: "/icons/cloudy.png" },
-          { day: "Wed", maxC: 25, minC: 17, icon: "/icons/rain.png" },
-        ],
-      });
-      setIsLoading(false);
-    }, 1000);
+  const fetchWeather = async (city) => {
+    setLoading(true);
+    setError("");
+    try {
+      const URL = `${API_URL}?q=${city}&units=metric&appid=${API_KEY}`;
+      const response = await axios.get(URL);
+      console.log(response.data);
+      setWeather(response.data);
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        setError("City not found, please try again.");
+      } else {
+        setError("An error occurred. Please try again later.");
+      }
+      setWeather(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <Router>
-      <div className="app">
-        <Header isMetric={isMetric} setIsMetric={setIsMetric} />
-
-        <main className="container">
-          {/* ✅ Navigation with Links */}
-          <nav className="nav">
-  <Link to="/homepage">Home</Link>
-  <Link to="/forecast">Forecast</Link>
-  <Link to="/about">About</Link>
-</nav>
-
-
-          <Routes>
-            <Route
-              path="/homepage"
-              element={
-                <HomePage
-                  weather={weather}
-                  isMetric={isMetric}
-                  searchTerm={searchTerm}
-                  setSearchTerm={setSearchTerm}
-                  handleSearch={handleSearch}
-                  isLoading={isLoading}
-                />
-              }
-            />
-            <Route
-              path="/forecast"
-              element={
-                <ForecastPage
-                  weather={weather}
-                  isMetric={isMetric}
-                />
-              }
-            />
-            <Route path="/about" element={<AboutPage />} />
-          </Routes>
-        </main>
-
-        <Footer />
+    <div className="min-h-screen flex flex-col items-center justify-center bg-blue-100">
+      <div className="bg-black/90 text-white rounded-lg shadow-lg p-8 max-w-md w-full">
+        <h1 className="text-3xl font-bold text-center">Weather App</h1>
+        <SearchBar fetchWeather={fetchWeather} />
+      {weather && <WeatherCard weather =
+      {weather} />}
+        {loading && <p className="text-center mt-4">Loading...</p>}
+        {error && <p className="text-center text-red-400 mt-4">{error}</p>}
+        {weather && (
+          <div className="mt-4 text-center">
+            <h2 className="text-xl">{weather.name}</h2>
+            <p className="text-lg">{weather.main.temp} °C</p>
+            <p>{weather.weather[0].description}</p>
+          </div>
+        )}
       </div>
-    </Router>
+    </div>
   );
-};
+}
 
 export default App;
+

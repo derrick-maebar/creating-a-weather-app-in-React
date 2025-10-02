@@ -1,8 +1,10 @@
-import iconSunny from "./assets/icon-sunny.webp";
+import iconSunny from "../assets/iconSunny.webp";
+import { formatTemp } from "../utils/conversions";
 
-
-const CurrentWeather = ({ weather, isMetric }) => (
-  <div className="current-weather">
+function CurrentWeather( weather, isMetric ) {
+  console.log("W: ", weather)
+  return (
+<div className="current-weather">
     <div className="weather-info">
       <h2>{weather.city}, {weather.country}</h2>
       <p className="date">{weather.date}</p>
@@ -14,7 +16,8 @@ const CurrentWeather = ({ weather, isMetric }) => (
       </span>
     </div>
   </div>
-);
+  );
+}
 
 export default CurrentWeather;
 
